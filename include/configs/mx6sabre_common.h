@@ -65,6 +65,7 @@
 
 #define CONFIG_SUPPORT_EMMC_BOOT /* eMMC specific */
 
+#ifndef CONFIG_HAVE_NO_ETH	/* JasperZhang disabled, 2015.05 */
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
@@ -78,6 +79,7 @@
 
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_ATHEROS
+#endif	/* JasperZhang */
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
