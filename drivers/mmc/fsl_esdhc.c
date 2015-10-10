@@ -618,6 +618,7 @@ int fsl_esdhc_initialize(bd_t *bis, struct fsl_esdhc_cfg *cfg)
 #else
 	cfg->cfg.voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
 #endif
+    cfg->cfg.voltages |= MMC_VDD_165_195;
 	if ((cfg->cfg.voltages & voltage_caps) == 0) {
 		printf("voltage not supported by controller\n");
 		return -1;
