@@ -20,7 +20,7 @@
 #include "mx6ms600_common.h"
 
 /* USB Configs */
-#if 0
+#if 1
 #define CONFIG_CMD_USB
 #define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_MX6
