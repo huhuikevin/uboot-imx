@@ -92,6 +92,10 @@ iomux_v3_cfg_t const uart4_pads[] = {
 	MX6_PAD_KEY_ROW0__UART4_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
 
+iomux_v3_cfg_t const uart3_pads[] = {
+	MX6_PAD_EIM_D24__UART3_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+	MX6_PAD_EIM_D25__UART3_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+};
 
 iomux_v3_cfg_t const usdhc4_pads[] = {
 	MX6_PAD_SD4_CLK__SD4_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -179,6 +183,7 @@ static iomux_v3_cfg_t const epdc_disable_pads[] = {
 static void setup_iomux_uart(void)
 {
 	imx_iomux_v3_setup_multiple_pads(uart4_pads, ARRAY_SIZE(uart4_pads));
+	imx_iomux_v3_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
 }
 
 #ifdef CONFIG_SYS_I2C_MXC
@@ -436,6 +441,7 @@ struct fsl_esdhc_cfg usdhc_cfg[1] = {
 
 int mmc_get_env_devno(void)
 {
+#if 0
 	u32 soc_sbmr = readl(SRC_BASE_ADDR + 0x4);
 	u32 dev_no;
 	u32 bootsel;
@@ -456,6 +462,9 @@ int mmc_get_env_devno(void)
 	dev_no--;
 
 	return dev_no;
+#else
+	return CONFIG_SYS_MMC_ENV_DEV;
+#endif
 }
 
 int mmc_map_to_kernel_blk(int dev_no)
