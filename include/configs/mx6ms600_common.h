@@ -380,6 +380,7 @@
 #define CONFIG_SYS_I2C_SPEED		100000
 
 /* Framebuffer */
+#if 0
 #define CONFIG_VIDEO
 #define CONFIG_VIDEO_IPUV3
 #define CONFIG_CFB_CONSOLE
@@ -398,7 +399,7 @@
 #define CONFIG_IPUV3_CLK 264000000
 #endif
 #define CONFIG_IMX_HDMI
-
+#endif
 #if defined(CONFIG_ANDROID_SUPPORT)
 #include "mx6sabreandroid_common.h"
 #endif

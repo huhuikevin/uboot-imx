@@ -88,14 +88,10 @@ int dram_init(void)
 }
 
 iomux_v3_cfg_t const uart4_pads[] = {
-	MX6_PAD_KEY_COL0__UART4_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-	MX6_PAD_KEY_ROW0__UART4_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-};
-
-iomux_v3_cfg_t const uart3_pads[] = {
 	MX6_PAD_EIM_D24__UART3_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_EIM_D25__UART3_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
+
 
 iomux_v3_cfg_t const usdhc4_pads[] = {
 	MX6_PAD_SD4_CLK__SD4_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -108,6 +104,8 @@ iomux_v3_cfg_t const usdhc4_pads[] = {
 	MX6_PAD_SD4_DAT5__SD4_DATA5 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD4_DAT6__SD4_DATA6 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD4_DAT7__SD4_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_NANDF_ALE__GPIO6_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),//RESET
+	MX6_PAD_GPIO_18__GPIO7_IO13 | MUX_PAD_CTRL(NO_PAD_CTRL),//POWER DOWN
 };
 
 #ifdef CONFIG_SYS_USE_SPINOR
@@ -183,7 +181,6 @@ static iomux_v3_cfg_t const epdc_disable_pads[] = {
 static void setup_iomux_uart(void)
 {
 	imx_iomux_v3_setup_multiple_pads(uart4_pads, ARRAY_SIZE(uart4_pads));
-	imx_iomux_v3_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
 }
 
 #ifdef CONFIG_SYS_I2C_MXC
@@ -441,10 +438,13 @@ struct fsl_esdhc_cfg usdhc_cfg[1] = {
 
 int mmc_get_env_devno(void)
 {
-#if 0
 	u32 soc_sbmr = readl(SRC_BASE_ADDR + 0x4);
 	u32 dev_no;
 	u32 bootsel;
+#ifdef is_boot_from_usb
+	if (is_boot_from_usb())
+		return CONFIG_SYS_MMC_ENV_DEV;
+#endif
 
 	bootsel = (soc_sbmr & 0x000000FF) >> 6 ;
 
@@ -462,9 +462,6 @@ int mmc_get_env_devno(void)
 	dev_no--;
 
 	return dev_no;
-#else
-	return CONFIG_SYS_MMC_ENV_DEV;
-#endif
 }
 
 int mmc_map_to_kernel_blk(int dev_no)
@@ -474,6 +471,9 @@ int mmc_map_to_kernel_blk(int dev_no)
 
 #define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 2)
 #define USDHC3_CD_GPIO	IMX_GPIO_NR(2, 0)
+
+#define USDHC4_RESET IMX_GPIO_NR(6, 8)
+#define USDHC4_POWER IMX_GPIO_NR(7,13)
 
 int board_mmc_getcd(struct mmc *mmc)
 {
@@ -508,9 +508,15 @@ int board_mmc_init(bd_t *bis)
 	for (i = 0; i < CONFIG_SYS_FSL_USDHC_NUM; i++) {
 		switch (i) {
 		case 0:
+			
 			imx_iomux_v3_setup_multiple_pads(
 				usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
 			usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
+			gpio_direction_output(USDHC4_POWER,1);
+			udelay(1000);
+			gpio_direction_output(USDHC4_RESET,0);//RESET
+			udelay(1000);
+			gpio_direction_output(USDHC4_RESET,1);//NORNAL
 			break;
 		default:
 			printf("Warning: you configured more USDHC controllers"
