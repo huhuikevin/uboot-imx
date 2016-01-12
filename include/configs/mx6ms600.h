@@ -13,8 +13,8 @@
 #include <asm/imx-common/gpio.h>
 
 #define CONFIG_MACH_TYPE	3980
-#define CONFIG_MXC_UART_BASE	UART3_BASE
-#define CONFIG_CONSOLE_DEV		"ttymxc2"
+#define CONFIG_MXC_UART_BASE	UART4_BASE
+#define CONFIG_CONSOLE_DEV		"ttymxc3"
 #define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* SDHC4 */
 
 #include "mx6ms600_common.h"
