@@ -19,6 +19,8 @@
 
 #include "mx6ms600_common.h"
 
+//#define CONFIG_SWITCH_TO_USBDOWNLOAD
+
 /* USB Configs */
 #if 1
 #define CONFIG_CMD_USB

@@ -86,7 +86,52 @@ int dram_init(void)
 
 	return 0;
 }
+#ifdef CONFIG_SWITCH_TO_USBDOWNLOAD
+iomux_v3_cfg_t const key_gpios[] = {
+	MX6_PAD_KEY_ROW2__GPIO4_IO11 | MUX_PAD_CTRL(NO_PAD_CTRL), //out
+	MX6_PAD_GPIO_1__GPIO1_IO01 | MUX_PAD_CTRL(NO_PAD_CTRL), //out
+	MX6_PAD_GPIO_2__GPIO1_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL),//out
+	MX6_PAD_GPIO_5__GPIO1_IO05 | MUX_PAD_CTRL(NO_PAD_CTRL),//out
+	MX6_PAD_KEY_COL2__GPIO4_IO10 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_UP),//in
+	MX6_PAD_GPIO_0__GPIO1_IO00 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_UP),//in
+	MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_UP),//in
+	MX6_PAD_GPIO_4__GPIO1_IO04 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_UP),//in
+	MX6_PAD_DISP0_DAT9__GPIO4_IO30 | MUX_PAD_CTRL(NO_PAD_CTRL),//out for key led
+};
 
+static int keydown = 0;
+
+static void setup_keys_gpio(void)
+{
+	imx_iomux_v3_setup_multiple_pads(key_gpios, ARRAY_SIZE(key_gpios));
+	gpio_direction_output(IMX_GPIO_NR(4, 11), 0);
+	gpio_direction_output(IMX_GPIO_NR(1, 1), 0);
+	gpio_direction_output(IMX_GPIO_NR(1, 2), 0);
+	gpio_direction_output(IMX_GPIO_NR(1, 5), 0);
+	gpio_direction_output(IMX_GPIO_NR(4, 30), 0);
+
+	gpio_direction_input(IMX_GPIO_NR(4, 10));
+	gpio_direction_input(IMX_GPIO_NR(1, 0));
+	gpio_direction_input(IMX_GPIO_NR(1, 9));
+	gpio_direction_input(IMX_GPIO_NR(1, 4));
+
+	if (!gpio_get_value(IMX_GPIO_NR(4, 10)) | !gpio_get_value(IMX_GPIO_NR(1, 0)) |
+					!gpio_get_value(IMX_GPIO_NR(1, 9)) | !gpio_get_value(IMX_GPIO_NR(1, 4))){
+		keydown = 1;
+		printf("key pressed, entry usb download mode\n");
+		boot_mode_apply(MAKE_CFGVAL(0x00, 0x00, 0x00, 0x13));
+		do_reset(NULL, 0, 0, NULL);
+	}
+}
+
+void entry_fastboot(void)
+{
+	if (keydown){
+		do_fastboot(NULL, 0, 0, NULL);
+	}
+}
+
+#endif
 iomux_v3_cfg_t const uart4_pads[] = {
 	MX6_PAD_CSI0_DAT12__UART4_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT13__UART4_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
@@ -1074,7 +1119,9 @@ int board_late_init(void)
 #ifdef CONFIG_ENV_IS_IN_MMC
 	board_late_mmc_env_init();
 #endif
-
+#ifdef CONFIG_SWITCH_TO_USBDOWNLOAD
+	setup_keys_gpio();
+#endif
 	return 0;
 }
 
