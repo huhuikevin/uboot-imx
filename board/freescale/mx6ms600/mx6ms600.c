@@ -1162,24 +1162,26 @@ void board_fastboot_setup(void)
 #ifdef CONFIG_ANDROID_RECOVERY
 
 #define GPIO_VOL_DN_KEY IMX_GPIO_NR(1, 5)
+
+#if 0
 iomux_v3_cfg_t const recovery_key_pads[] = {
 	(MX6_PAD_GPIO_5__GPIO1_IO05 | MUX_PAD_CTRL(NO_PAD_CTRL)),
 };
-
+#endif
 int check_recovery_cmd_file(void)
 {
     int button_pressed = 0;
     int recovery_mode = 0;
 
     recovery_mode = recovery_check_and_clean_flag();
-
+#if 0
     /* Check Recovery Combo Button press or not. */
 	imx_iomux_v3_setup_multiple_pads(recovery_key_pads,
 			ARRAY_SIZE(recovery_key_pads));
 
     gpio_direction_input(GPIO_VOL_DN_KEY);
-
-    if (gpio_get_value(GPIO_VOL_DN_KEY) == 0) { /* VOL_DN key is low assert */
+#endif
+    if (gpio_get_value(GPIO_VOL_DN_KEY) == 1) { /* VOL_DN key is low assert */
 		button_pressed = 1;
 		printf("Recovery key pressed\n");
     }
