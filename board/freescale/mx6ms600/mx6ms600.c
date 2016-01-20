@@ -102,6 +102,16 @@ iomux_v3_cfg_t const key_gpios[] = {
 
 static int keydown = 0;
 
+void entry_fastboot(void)
+{
+	if (keydown){
+#ifdef CONFIG_FASTBOOT
+		fastboot_setup();
+		do_fastboot(NULL, 0, 0, NULL);
+#endif
+	}
+}
+
 static void setup_keys_gpio(void)
 {
 	imx_iomux_v3_setup_multiple_pads(key_gpios, ARRAY_SIZE(key_gpios));
@@ -125,19 +135,17 @@ static void setup_keys_gpio(void)
 		mdelay(1*1000);
 		gpio_direction_output(IMX_GPIO_NR(7, 5), 1);
 		printf("key pressed, reset to usb download mode\n");
+#if 1
 		boot_mode_apply(MAKE_CFGVAL(0x00, 0x00, 0x00, 0x13));
 		do_reset(NULL, 0, 0, NULL);
+#else
+		entry_fastboot();
+#endif
 	}
 	mdelay(100);
 	gpio_direction_output(IMX_GPIO_NR(7, 5), 1);
 }
 
-void entry_fastboot(void)
-{
-	if (keydown){
-		do_fastboot(NULL, 0, 0, NULL);
-	}
-}
 
 #endif
 iomux_v3_cfg_t const uart4_pads[] = {
