@@ -12,14 +12,26 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/imx-common/gpio.h>
 
+#define MS600_VERSION_A  0
+#define MS600_VERSION_B  1
+
+#define CONFIG_MS600_VERSION MS600_VERSION_B
+
 #define CONFIG_MACH_TYPE	3980
+#if  (CONFIG_MS600_VERSION == MS600_VERSION_A)
+#define CONFIG_MXC_UART_BASE	UART3_BASE
+#define CONFIG_CONSOLE_DEV		"ttymxc2"
+#elif (CONFIG_MS600_VERSION == MS600_VERSION_B)
 #define CONFIG_MXC_UART_BASE	UART4_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc3"
+#else
+#error "CONFIG_MS600_VERSION can only be MS600_VERSION_A or MS600_VERSION_B, pls check it"
+#endif
 #define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* SDHC4 */
 
 #include "mx6ms600_common.h"
 
-//#define CONFIG_SWITCH_TO_USBDOWNLOAD
+#define CONFIG_SWITCH_TO_USBDOWNLOAD
 
 /* USB Configs */
 #if 1

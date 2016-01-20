@@ -97,6 +97,7 @@ iomux_v3_cfg_t const key_gpios[] = {
 	MX6_PAD_GPIO_9__GPIO1_IO09 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_UP),//in
 	MX6_PAD_GPIO_4__GPIO1_IO04 | MUX_PAD_CTRL(PAD_CTL_PUS_100K_UP),//in
 	MX6_PAD_DISP0_DAT9__GPIO4_IO30 | MUX_PAD_CTRL(NO_PAD_CTRL),//out for key led
+	MX6_PAD_SD3_DAT1__GPIO7_IO05  | MUX_PAD_CTRL(NO_PAD_CTRL),//out for motor
 };
 
 static int keydown = 0;
@@ -108,7 +109,10 @@ static void setup_keys_gpio(void)
 	gpio_direction_output(IMX_GPIO_NR(1, 1), 0);
 	gpio_direction_output(IMX_GPIO_NR(1, 2), 0);
 	gpio_direction_output(IMX_GPIO_NR(1, 5), 0);
-	gpio_direction_output(IMX_GPIO_NR(4, 30), 0);
+
+	gpio_direction_output(IMX_GPIO_NR(4, 30), 0);//close key backlight
+
+	gpio_direction_output(IMX_GPIO_NR(7, 5), 0);// open motor
 
 	gpio_direction_input(IMX_GPIO_NR(4, 10));
 	gpio_direction_input(IMX_GPIO_NR(1, 0));
@@ -118,10 +122,14 @@ static void setup_keys_gpio(void)
 	if (!gpio_get_value(IMX_GPIO_NR(4, 10)) | !gpio_get_value(IMX_GPIO_NR(1, 0)) |
 					!gpio_get_value(IMX_GPIO_NR(1, 9)) | !gpio_get_value(IMX_GPIO_NR(1, 4))){
 		keydown = 1;
-		printf("key pressed, entry usb download mode\n");
+		mdelay(1*1000);
+		gpio_direction_output(IMX_GPIO_NR(7, 5), 1);
+		printf("key pressed, reset to usb download mode\n");
 		boot_mode_apply(MAKE_CFGVAL(0x00, 0x00, 0x00, 0x13));
 		do_reset(NULL, 0, 0, NULL);
 	}
+	mdelay(100);
+	gpio_direction_output(IMX_GPIO_NR(7, 5), 1);
 }
 
 void entry_fastboot(void)
@@ -133,8 +141,13 @@ void entry_fastboot(void)
 
 #endif
 iomux_v3_cfg_t const uart4_pads[] = {
+#if  (CONFIG_MS600_VERSION == MS600_VERSION_A)
+	MX6_PAD_EIM_D24__UART3_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+	MX6_PAD_EIM_D25__UART3_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+#else
 	MX6_PAD_CSI0_DAT12__UART4_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT13__UART4_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+#endif
 };
 
 
