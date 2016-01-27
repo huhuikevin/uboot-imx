@@ -1194,19 +1194,19 @@ int check_recovery_cmd_file(void)
     int button_pressed = 0;
     int recovery_mode = 0;
 
-    recovery_mode = recovery_check_and_clean_flag();
 #if 0
+    recovery_mode = recovery_check_and_clean_flag();
     /* Check Recovery Combo Button press or not. */
 	imx_iomux_v3_setup_multiple_pads(recovery_key_pads,
 			ARRAY_SIZE(recovery_key_pads));
 
     gpio_direction_input(GPIO_VOL_DN_KEY);
-#endif
     if (gpio_get_value(GPIO_VOL_DN_KEY) == 1) { /* VOL_DN key is low assert */
 		button_pressed = 1;
 		printf("Recovery key pressed\n");
     }
 
+#endif
     return recovery_mode || button_pressed;
 }
 
