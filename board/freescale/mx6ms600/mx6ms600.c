@@ -1194,8 +1194,8 @@ int check_recovery_cmd_file(void)
     int button_pressed = 0;
     int recovery_mode = 0;
 
-#if 0
     recovery_mode = recovery_check_and_clean_flag();
+#if 0
     /* Check Recovery Combo Button press or not. */
 	imx_iomux_v3_setup_multiple_pads(recovery_key_pads,
 			ARRAY_SIZE(recovery_key_pads));
