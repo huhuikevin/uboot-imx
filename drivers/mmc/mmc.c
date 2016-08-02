@@ -788,8 +788,10 @@ static int mmc_startup(struct mmc *mmc)
 		cmd.cmdarg = 1;
 		err = mmc_send_cmd(mmc, &cmd, NULL);
 
-		if (err)
+		if (err) {
+			printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 			return err;
+		}
 	}
 #endif
 
@@ -801,8 +803,10 @@ static int mmc_startup(struct mmc *mmc)
 
 	err = mmc_send_cmd(mmc, &cmd, NULL);
 
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
+	}
 
 	memcpy(mmc->cid, cmd.response, 16);
 
@@ -818,8 +822,10 @@ static int mmc_startup(struct mmc *mmc)
 
 		err = mmc_send_cmd(mmc, &cmd, NULL);
 
-		if (err)
+		if (err) {
+			printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 			return err;
+		}
 
 		if (IS_SD(mmc))
 			mmc->rca = (cmd.response[0] >> 16) & 0xffff;
@@ -835,8 +841,10 @@ static int mmc_startup(struct mmc *mmc)
 	/* Waiting for the ready status */
 	mmc_send_status(mmc, timeout);
 
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
+	}
 
 	mmc->csd[0] = cmd.response[0];
 	mmc->csd[1] = cmd.response[1];
@@ -860,6 +868,9 @@ static int mmc_startup(struct mmc *mmc)
 				mmc->version = MMC_VERSION_3;
 				break;
 			case 4:
+			case 5:
+			case 6:
+				printf("emmc read version byte=%d\r\n", version);
 				mmc->version = MMC_VERSION_4;
 				break;
 			default:
@@ -867,7 +878,7 @@ static int mmc_startup(struct mmc *mmc)
 				break;
 		}
 	}
-
+	printf("mmc version=0x%x\r\n", mmc->version);
 	/* divide frequency by 10, since the mults are 10x bigger */
 	freq = fbase[(cmd.response[0] & 0x7)];
 	mult = multipliers[((cmd.response[0] >> 3) & 0xf)];
@@ -920,8 +931,10 @@ static int mmc_startup(struct mmc *mmc)
 		cmd.cmdarg = mmc->rca << 16;
 		err = mmc_send_cmd(mmc, &cmd, NULL);
 
-		if (err)
+		if (err) {
+			printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 			return err;
+		}
 	}
 
 	/*
@@ -932,6 +945,8 @@ static int mmc_startup(struct mmc *mmc)
 	if (!IS_SD(mmc) && (mmc->version >= MMC_VERSION_4)) {
 		/* check  ext_csd version and capacity */
 		err = mmc_send_ext_csd(mmc, ext_csd);
+		if (err)
+			printf("Error:read ext_csd error\r\n");
 		if (!err && (ext_csd[EXT_CSD_REV] >= 2)) {
 			/*
 			 * According to the JEDEC Standard, the value of
@@ -961,6 +976,9 @@ static int mmc_startup(struct mmc *mmc)
 			mmc->version = MMC_VERSION_4_41;
 			break;
 		case 6:
+		case 7:
+		case 8:
+			printf("emmc ext_csd_rev=%d\r\n", ext_csd[EXT_CSD_REV]);
 			mmc->version = MMC_VERSION_4_5;
 			break;
 		}
@@ -975,8 +993,10 @@ static int mmc_startup(struct mmc *mmc)
 			err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
 				EXT_CSD_ERASE_GROUP_DEF, 1);
 
-			if (err)
+			if (err) {
+				printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 				return err;
+			}
 
 			/* Read out group size from ext_csd */
 			mmc->erase_grp_size =
@@ -1011,16 +1031,20 @@ static int mmc_startup(struct mmc *mmc)
 	}
 
 	err = mmc_set_capacity(mmc, mmc->part_num);
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
+	}
 
 	if (IS_SD(mmc))
 		err = sd_change_freq(mmc);
 	else
 		err = mmc_change_freq(mmc);
 
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
+	}
 
 	/* Restrict card's capabilities by what the host can do */
 	mmc->card_caps &= mmc->cfg->host_caps;
@@ -1084,8 +1108,10 @@ static int mmc_startup(struct mmc *mmc)
 			err = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL,
 					EXT_CSD_BUS_WIDTH, extw);
 
-			if (err)
+			if (err) {
+				printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 				continue;
+			}
 
 			mmc_set_bus_width(mmc, widths[idx]);
 
@@ -1107,10 +1133,15 @@ static int mmc_startup(struct mmc *mmc)
 		}
 
 		if (mmc->card_caps & MMC_MODE_HS) {
-			if (mmc->card_caps & MMC_MODE_HS_52MHz)
+			printf("emmc mode hs\r\n");
+			if (mmc->card_caps & MMC_MODE_HS_52MHz){
+				printf("emmc speed 52M\r\n");
 				mmc->tran_speed = 52000000;
-			else
+			}
+			else {
+				printf("emmc speed 26M\r\n");
 				mmc->tran_speed = 26000000;
+			}
 		}
 	}
 
@@ -1251,17 +1282,20 @@ int mmc_start_init(struct mmc *mmc)
 	/* made sure it's not NULL earlier */
 	err = mmc->cfg->ops->init(mmc);
 
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
-
+	}
 	mmc_set_bus_width(mmc, 1);
 	mmc_set_clock(mmc, 1);
 
 	/* Reset the Card */
 	err = mmc_go_idle(mmc);
 
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
+	}
 
 	/* The internal partition reset to user partition(0) at every CMD0*/
 	mmc->part_num = 0;
@@ -1269,13 +1303,22 @@ int mmc_start_init(struct mmc *mmc)
 	/* Test for SD version 2 */
 	err = mmc_send_if_cond(mmc);
 
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
+	}
 	/* Now try to get the SD card's operating condition */
 	err = sd_send_op_cond(mmc);
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
+	}
 
 	/* If the command timed out, we check for an MMC card */
 	if (err == TIMEOUT) {
 		err = mmc_send_op_cond(mmc);
 
+		if (err) {
+			printf("Error:func=%s, line=%d, err=%d\r\n", __func__, __LINE__, err);
+		}
 		if (err && err != IN_PROGRESS) {
 #if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
 			printf("Card did not respond to voltage select!\n");
