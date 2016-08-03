@@ -365,9 +365,12 @@ static int mmc_send_op_cond_iter(struct mmc *mmc, struct mmc_cmd *cmd,
 			cmd->cmdarg |= OCR_HCS;
 	}
 	err = mmc_send_cmd(mmc, cmd, NULL);
-	if (err)
+	if (err) {
+		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
 		return err;
+	}
 	mmc->op_cond_response = cmd->response[0];
+	printf("reponse=%d\r\n", mmc->op_cond_response);
 	return 0;
 }
 
@@ -402,14 +405,14 @@ int mmc_complete_op_cond(struct mmc *mmc)
 
 	mmc->op_cond_pending = 0;
 	start = get_timer(0);
-	do {
+	while (!(mmc->op_cond_response & OCR_BUSY)) {
 		err = mmc_send_op_cond_iter(mmc, &cmd, 1);
 		if (err)
 			return err;
 		if (get_timer(start) > timeout)
 			return UNUSABLE_ERR;
 		udelay(100);
-	} while (!(mmc->op_cond_response & OCR_BUSY));
+	}
 
 	if (mmc_host_is_spi(mmc)) { /* read OCR for spi */
 		cmd.cmdidx = MMC_CMD_SPI_READ_OCR;
