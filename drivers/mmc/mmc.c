@@ -1304,16 +1304,17 @@ int mmc_start_init(struct mmc *mmc)
 	err = mmc_send_if_cond(mmc);
 
 	if (err) {
-		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
+		printf("Error:func=%s, line=%d, err=%d\r\n", __func__, __LINE__, err);
 	}
 	/* Now try to get the SD card's operating condition */
 	err = sd_send_op_cond(mmc);
 	if (err) {
-		printf("Error:func=%s, line=%d\r\n", __func__, __LINE__);
+		printf("Error:func=%s, line=%d, err=%d\r\n", __func__, __LINE__, err);
 	}
 
 	/* If the command timed out, we check for an MMC card */
-	if (err == TIMEOUT) {
+	if (err/* == TIMEOUT*/) {
+		printf("detect mmc card......\r\n");
 		err = mmc_send_op_cond(mmc);
 
 		if (err) {
